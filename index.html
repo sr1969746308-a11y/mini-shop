@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>mini-shop</title>
+<style>
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif;background:#f7fafc;}
+header{background:#fff;padding:15px;text-align:center;box-shadow:0 2px 4px rgba(0,0,0,.05);}
+.container{max-width:900px;margin:20px auto;padding:0 15px;}
+.gallery{display:flex;flex-wrap:wrap;gap:15px;}
+.card{background:#fff;border-radius:8px;overflow:hidden;width:260px;box-shadow:0 4px 6px rgba(0,0,0,.05);}
+.card img{width:100%;height:200px;object-fit:cover;}
+.info{padding:12px;display:flex;flex-direction:column;height:160px;}
+.title{font-weight:600;margin-bottom:6px;}
+.desc{font-size:14px;color:#555;flex:1;}
+.price{color:#e53e3e;font-size:18px;font-weight:700;margin:8px 0;}
+.btn{background:#2b6cb0;color:#fff;border:none;padding:8px 14px;border-radius:4px;cursor:pointer;}
+.btn:hover{background:#2c5282;}
+.comment-box{margin-top:10px;font-size:13px;}
+.comment-box input{width:calc(100% - 60px);padding:6px 8px;border:1px solid #cbd5e0;border-radius:4px;font-size:13px;}
+.comment-box button{width:50px;margin-left:6px;font-size:12px;background:#718096;}
+.comments{margin-top:6px;font-size:12px;color:#4a5568;max-height:100px;overflow-y:auto;}
+.comments div{border-bottom:1px solid #e2e8f0;padding:4px 0;}
+.pay-page{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);align-items:center;justify-content:center;}
+.pay-panel{background:#fff;border-radius:8px;padding:25px;width:320px;text-align:center;}
+.qrcode{width:180px;height:180px;margin:0 auto 15px;background:#f7fafc;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;font-size:14px;color:#718096;}
+.close-btn{background:#e53e3e;}
+</style>
+</head>
+<body>
+<header><h1>mini-shop</h1></header>
+<div class="container">
+  <div class="gallery" id="gallery"></div>
+</div>
+
+<!-- 支付弹层 -->
+<div class="pay-page" id="payPage">
+  <div class="pay-panel">
+    <h2>扫码支付</h2>
+    <div class="qrcode" id="qrcode">二维码区域</div>
+    <button class="btn close-btn" onclick="closePay()">关闭</button>
+  </div>
+</div>
+
+<script>
+/* 1 商品数据 */
+const products = [
+  {id:1, img:'https://picsum.photos/260/200?random=1', title:'夏日短袖', desc:'纯棉透气', price:79},
+  {id:2, img:'https://picsum.photos/260/200?random=2', title:'便携水杯', desc:'500ml 不锈钢', price:99},
+  {id:3, img:'https://picsum.photos/260/200?random=3', title:'休闲板鞋', desc:'经典黑白', price:199}
+];
+
+/* 2 渲染商品 + 评论框 */
+const gallery = document.getElementById('gallery');
+products.forEach(p=>{
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <img src="${p.img}" alt="${p.title}">
+    <div class="info">
+      <div class="title">${p.title}</div>
+      <div class="desc">${p.desc}</div>
+      <div class="price">¥${p.price}</div>
+      <button class="btn" onclick="buy(${p.id})">立刻购买</button>
+      <div class="comment-box">
+        <input placeholder="说点什么…" id="inp${p.id}">
+        <button onclick="comment(${p.id})">评论</button>
+        <div class="comments" id="com${p.id}"></div>
+      </div>
+    </div>`;
+  gallery.appendChild(card);
+  renderCom(p.id);   // 把旧评论读出来
+});
+
+/* 3 评论功能 */
+function comment(id){
+  const inp = document.getElementById(`inp${id}`);
+  const txt = inp.value.trim();
+  if(!txt) return alert('请输入内容');
+  const key = `com_${id}`;
+  const arr = JSON.parse(localStorage.getItem(key)||'[]');
+  arr.push({text:txt, time:new Date().toLocaleString()});
+  localStorage.setItem(key, JSON.stringify(arr));
+  inp.value='';
+  renderCom(id);
+}
+function renderCom(id){
+  const box = document.getElementById(`com${id}`);
+  const key = `com_${id}`;
+  const arr = JSON.parse(localStorage.getItem(key)||'[]');
+  box.innerHTML = arr.map(c=>`<div>${c.time}　${c.text}</div>`).join('');
+}
+
+/* 4 支付弹层 */
+function buy(id){
+  document.getElementById('payPage').style.display='flex';
+  // 把你的收款码图片 pay.png 显示出来
+  document.getElementById('qrcode').innerHTML =
+    '<img src="pay.png" width="180" height="180" style="object-fit:contain">';
+}
+function closePay(){
+  document.getElementById('payPage').style.display='none';
+}
+</script>
+</body>
+</html>
